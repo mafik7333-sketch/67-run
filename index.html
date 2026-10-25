@@ -1,0 +1,2572 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>БЕГИ, Бутылочка!</title>
+<link rel="preload" as="image" href="tunnel.webp">
+<link rel="preload" as="image" href="player.webp">
+<link rel="preload" as="image" href="obstacle1.webp">
+<link rel="preload" as="image" href="obstacle2.webp">
+<link rel="preload" as="image" href="obstacle3.webp">
+<link rel="preload" as="image" href="obstacle4.webp">
+    <script src="./browser.min.js"></script>
+<script>
+    // Инициализация приложения ВКонтакте
+    vkBridge.send('VKWebAppInit')
+        .then(data => {
+            console.log('VK Bridge успешно инициализирован!', data);
+        })
+        .catch(error => {
+            console.error('Ошибка инициализации VK Bridge:', error);
+        });
+</script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background: #87CEEB;
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .game {
+    width: 100vw;
+    height: 100vh;
+    max-width: 400px;
+    max-height: 700px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    background: #000;
+    box-shadow: 0 0 60px rgba(0, 150, 255, 0.3);
+    }
+
+        /* ===== ФОН (ГОРОД) ===== */
+
+        .sky {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                #87CEEB 0%,
+                #B0E0E6 50%,
+                #E0F0FF 70%,
+                #F5F5F5 100%
+            );
+            z-index: 0;
+        }
+
+        .sun {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.6);
+            z-index: 1;
+        }
+
+        .cloud {
+            position: absolute;
+            color: rgba(255,255,255,0.8);
+            font-size: 50px;
+            z-index: 1;
+            animation: cloudMove 20s linear infinite;
+        }
+
+        .cloud:nth-child(1) {
+            top: 50px;
+            left: -80px;
+            animation-delay: 0s;
+        }
+
+        .cloud:nth-child(2) {
+            top: 100px;
+            left: -200px;
+            animation-delay: -7s;
+            font-size: 35px;
+        }
+
+        .cloud:nth-child(3) {
+            top: 30px;
+            left: -350px;
+            animation-delay: -14s;
+            font-size: 45px;
+        }
+        /* ===== СТЕНЫ ТУННЕЛЯ ===== */
+
+.tunnel-wall {
+
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    width: 20%;
+
+    background: #111;
+
+    z-index: 1;
+
+}
+
+
+.left-wall {
+    left: 0;
+}
+
+
+.right-wall {
+    right: 0;
+}
+        /* ===== ТРОТУАР ===== */
+
+.sidewalk-left,
+.sidewalk-right {
+
+    position: absolute;
+
+    bottom: 0;
+
+    height: 38%;
+
+    width: 25px;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #bdbdbd 0 12px,
+            #999 12px 24px
+        );
+
+    z-index: 2;
+
+}
+
+
+.sidewalk-left {
+
+    left: 0;
+
+}
+
+
+.sidewalk-right {
+
+    right: 0;
+
+}
+/* ===== ГОРОД ПО БОКАМ ===== */
+
+/* ===== ФОНАРИ ===== */
+
+
+        @keyframes cloudMove {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(500px);
+            }
+        }
+
+        .buildings {
+            position: absolute;
+            bottom: 35%;
+            left: 0;
+            right: 0;
+            height: 35%;
+            z-index: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .building {
+            display: none;
+            flex: 1;
+            background: linear-gradient(180deg, #e8e8e8, #c4c4c4);
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            min-height: 30px;
+            box-shadow: inset -2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .building:nth-child(1) {
+            height: 45%;
+            background: linear-gradient(180deg, #f0e6d3, #d4c5a9);
+        }
+
+        .building:nth-child(2) {
+            height: 70%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        .building:nth-child(3) {
+            height: 55%;
+            background: linear-gradient(180deg, #f5ede0, #d9cdb8);
+        }
+
+        .building:nth-child(4) {
+            height: 85%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        .building:nth-child(5) {
+            height: 40%;
+            background: linear-gradient(180deg, #f0e6d3, #d4c5a9);
+        }
+
+        .building:nth-child(6) {
+            height: 65%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        .building:nth-child(7) {
+            height: 50%;
+            background: linear-gradient(180deg, #f5ede0, #d9cdb8);
+        }
+
+        .building:nth-child(8) {
+            height: 75%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        .building:nth-child(9) {
+            height: 45%;
+            background: linear-gradient(180deg, #f0e6d3, #d4c5a9);
+        }
+
+        .building:nth-child(10) {
+            height: 90%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        .building:nth-child(11) {
+            height: 55%;
+            background: linear-gradient(180deg, #f5ede0, #d9cdb8);
+        }
+
+        .building:nth-child(12) {
+            height: 60%;
+            background: linear-gradient(180deg, #e8dcc8, #cbb99e);
+        }
+
+        /* ===== НОВАЯ ДОРОГА ===== */
+
+        .road {
+       background: transparent;
+
+}
+/* ===== СВЕТ ПО КРАЯМ ===== */
+
+.tunnel-light {
+
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    width: 6px;
+
+    background: #00ffff;
+
+    box-shadow:
+        0 0 20px #00ffff,
+        0 0 40px #00ffff;
+
+    z-index: 3;
+
+}
+
+
+.tunnel-light.left {
+
+    left: 3%;
+
+}
+
+
+.tunnel-light.right {
+
+    right: 3%;
+
+}
+.wall-left {
+    left: 0;
+}
+
+
+.wall-right {
+    right: 0;
+}
+.lane-line {
+
+    position: absolute;
+
+    top: -100px;
+    bottom: 0;
+
+    width: 5px;
+
+    background:
+    repeating-linear-gradient(
+        180deg,
+        rgba(0,255,255,0.9) 0 50px,
+        transparent 50px 110px
+    );
+
+    box-shadow:
+    0 0 20px cyan;
+
+    animation: laneMove 0.5s linear infinite;
+
+    z-index: 4;
+}
+
+
+@keyframes laneMove {
+
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(110px);
+    }
+
+}
+
+
+.line-one {
+    left: 33%;
+}
+
+
+.line-two {
+    left: 66%;
+}
+/* Движение дороги */
+
+@keyframes roadMove {
+
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(90px);
+    }
+
+}
+.curb-left {
+    left: 0;
+}
+
+
+.curb-right {
+    right: 0;
+}
+
+        /* ===== МЕНЮ ===== */
+
+        .menu {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+        }
+
+        .menu h1 {
+            font-size: 80px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -4px;
+        }
+
+        .menu .subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            letter-spacing: 8px;
+            margin-top: -8px;
+        }
+
+        .menu .meme-text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 30px;
+            letter-spacing: 2px;
+        }
+
+        .start-btn {
+            margin-top: 50px;
+            padding: 18px 70px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #00b894, #00a86b);
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0, 184, 148, 0.4);
+            transition: transform 0.2s;
+            letter-spacing: 2px;
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .donate-btn {
+            margin-top: 15px;
+            padding: 10px 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .donate-btn:active {
+            background: rgba(255,255,255,0.1);
+            transform: scale(0.95);
+        }
+
+        /* ===== ИГРОВОЙ ЭКРАН ===== */
+
+       .world {
+
+    position: absolute;
+    inset: 0;
+
+    display: none;
+
+    z-index: 1;
+
+    background-image: url("tunnel.webp");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+.world.running {
+    animation: runCamera 0.35s ease-in-out infinite alternate;
+}
+
+
+@keyframes runCamera {
+
+    from {
+        background-position: center center;
+        transform: scale(1);
+    }
+
+    to {
+        background-position: center 52%;
+        transform: scale(1.03);
+    }
+
+}
+}
+        .score-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 2px;
+            text-align: center;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.2);
+            padding: 8px 24px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+        }
+
+        .score-display span {
+    font-size: 12px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+         .combo-display {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 10;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffd93d;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+    .combo-display.show {
+    opacity: 1;
+}
+     .combo-display.combo-pop {
+    animation: comboPop 0.45s ease-out;
+}
+
+    @keyframes comboPop {
+    0% {
+        transform: scale(0.5) rotate(-5deg);
+        opacity: 0;
+    }
+
+    40% {
+        transform: scale(1.35) rotate(3deg);
+        opacity: 1;
+    }
+
+    65% {
+        transform: scale(0.95) rotate(-2deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+        /* ===== ПЕРСОНАЖ ===== */
+
+        .player {
+            position: absolute;
+            z-index: 5;
+            bottom: 60px;
+            width: 55px;
+            height: 70px;
+            left: 175px;
+            transition: left 0.06s ease;
+        }
+
+        .player img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: auto;
+            animation: runAnim 0.15s ease-in-out infinite alternate;
+        }
+
+        @keyframes runAnim {
+            0% {
+                transform: translateY(0) rotate(-1deg);
+            }
+
+            100% {
+                transform: translateY(-3px) rotate(1deg);
+            }
+        }
+
+        /* ===== ПРЕПЯТСТВИЯ ===== */
+
+        .obstacle {
+        position: absolute;
+        z-index: 3;
+
+        width: 70px;
+        height: 90px;
+
+        object-fit: contain;
+
+        filter:
+        drop-shadow(0 5px 4px rgba(0, 0, 0, 0.7))
+        drop-shadow(0 0 12px rgba(255, 40, 40, 0.35));
+
+        animation: obstacleFloat 0.55s ease-in-out infinite alternate;
+
+        pointer-events: none;
+    }
+
+       @keyframes obstacleFloat {
+       from {
+        transform: translateY(0) rotate(-1deg);
+       }
+
+       to {
+        transform: translateY(-4px) rotate(1deg);
+      }
+    }
+        .obstacle::before {
+            content: '⚠️';
+            position: absolute;
+            font-size: 18px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes obstaclePulse {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.08);
+            }
+        }
+
+        /* ===== ЧИСЛА ===== */
+
+         .number {
+    position: absolute;
+    z-index: 3;
+    font-size: 34px;
+    font-weight: 900;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    animation: floatNumber 0.5s ease-in-out infinite alternate;
+
+    /* Чёткая тёмная обводка */
+    -webkit-text-stroke: 3px #111;
+
+    /* Тень, чтобы цифры не терялись на светлом фоне */
+    text-shadow:
+        2px 2px 0 #111,
+        -2px -2px 0 #111,
+        2px -2px 0 #111,
+        -2px 2px 0 #111,
+        0 0 12px rgba(0, 0, 0, 0.8);
+
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    /* 6 */
+    .number[data-value="6"] {
+    background: radial-gradient(circle, #4facfe, #0066ff);
+    color: white;
+    }
+
+    /* 7 */
+    .number[data-value="7"] {
+    background: radial-gradient(circle, #f093fb, #d63384);
+    color: white;
+    }  
+
+        @keyframes floatNumber {
+            0% {
+                transform: translateY(-4px) scale(1);
+            }
+
+            100% {
+                transform: translateY(4px) scale(1.04);
+            }
+        }
+
+        /* ===== GAME OVER ===== */
+
+        .game-over {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .game-over h2 {
+            font-size: 44px;
+            margin: 0;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            letter-spacing: 4px;
+        }
+
+        .game-over .loser-text {
+            font-size: 60px;
+            margin: 10px 0;
+            color: #ff1744;
+            animation: loserAnim 0.4s ease-in-out infinite alternate;
+            text-shadow: 0 0 40px rgba(255, 23, 68, 0.3);
+            font-weight: 900;
+        }
+
+        @keyframes loserAnim {
+            0% {
+                transform: scale(1) rotate(-1deg);
+            }
+
+            100% {
+                transform: scale(1.04) rotate(1deg);
+            }
+        }
+
+        .final-score {
+            margin: 10px 0;
+            font-size: 20px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .final-score span {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .final-combo {
+            font-size: 16px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 15px;
+        }
+
+        .final-combo span {
+            color: #ffd93d;
+            font-weight: 700;
+        }
+
+        .restart-btn {
+            padding: 16px 50px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd93d, #f59f00);
+            color: #1a1a2e;
+            cursor: pointer;
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.3);
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+
+        .share-btn {
+            padding: 12px 35px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 5px;
+        }
+
+        .share-btn:active {
+            background: rgba(255,255,255,0.1);
+            transform: scale(0.95);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 6;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            letter-spacing: 2px;
+            display: none;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .controls-hint span {
+            display: inline-block;
+            margin: 0 15px;
+        }
+.countdown {
+
+    position: absolute;
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 50;
+pointer-events: none;
+    font-size: 120px;
+    font-weight: 900;
+
+    color: white;
+
+    text-shadow:
+        0 0 20px black,
+        0 0 40px cyan;
+
+}
+        @media (max-width: 420px) {
+            .game {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+
+        @media (min-width: 421px) {
+            .controls-hint {
+                display: block;
+            }
+        }
+        /* ЭФФЕКТ СТОЛКНОВЕНИЯ */
+        .player.hit {
+        animation: playerHit 0.45s ease;
+        }
+
+        @keyframes playerHit {
+        0% {
+        transform: translateX(0) rotate(0deg);
+        }
+
+        20% {
+        transform: translateX(-10px) rotate(-8deg);
+        }
+
+        40% {
+        transform: translateX(10px) rotate(8deg);
+        }
+
+        60% {
+        transform: translateX(-7px) rotate(-5deg);
+        }
+
+        80% {
+        transform: translateX(5px) rotate(4deg);
+        }
+
+        100% {
+        transform: translateX(0) rotate(0deg);
+        }
+    }
+
+       .world.hit-effect {
+        animation: worldHit 0.45s ease;
+    }
+
+        @keyframes worldHit {
+        0%, 100% {
+        filter: none;
+        }
+
+       25% {
+        filter: brightness(1.5);
+       }
+
+       50% {
+        filter: brightness(0.7);
+       }
+ 
+       75% {
+        filter: brightness(1.3);
+       }
+    }
+.world {
+    overflow: hidden;
+}
+
+.tunnel-wall,
+.sidewalk-left,
+.sidewalk-right,
+.sky,
+.buildings {
+    display: none;
+}
+/* 🔊 Кнопка звука */
+.sound-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+
+    width: 44px;
+    height: 44px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+
+    font-size: 22px;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    line-height: 1;
+}
+
+.sound-toggle:active {
+    transform: scale(0.92);
+}
+/* 🏆 Рейтинг */
+.rating {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+
+    display: none;
+    flex-direction: column;
+
+    padding: 25px 20px;
+
+    background: rgba(15, 23, 42, 0.97);
+    color: white;
+
+    box-sizing: border-box;
+}
+
+.rating h2 {
+    margin: 10px 0 20px;
+
+    text-align: center;
+
+    font-size: 24px;
+    font-weight: 900;
+}
+
+#ratingList {
+    flex: 1;
+
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rating-item {
+    display: flex;
+    align-items: center;
+
+    padding: 12px 14px;
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.rating-place {
+    width: 35px;
+
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.rating-name {
+    flex: 1;
+
+    min-width: 0;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rating-score {
+    margin-left: 10px;
+
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.rating-combo {
+    margin-left: 8px;
+
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+#closeRating {
+    margin-top: 15px;
+
+    width: 100%;
+    min-height: 50px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: #E67E22;
+    color: white;
+
+    font-size: 17px;
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+#closeRating:active {
+    transform: scale(0.98);
+}
+    </style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <!-- ===== ФОН ===== -->
+
+    <div class="sky">
+
+        <div class="sun"></div>
+
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁️</div>
+
+        <div class="buildings">
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+            <div class="building"></div>
+        </div>
+
+    </div>
+
+    <!-- ===== МЕНЮ ===== -->
+
+    <div class="menu" id="menu">
+
+        <h1>БЕГИ</h1>
+
+        <div class="subtitle">
+        Бутылочка!
+       </div>
+
+        <div class="meme-text">
+            🍾 🏆 СМОЖЕШЬ ПОБИТЬ РЕКОРД?
+        </div>
+
+        <button class="start-btn" id="startBtn">
+            🏃 ИГРАТЬ
+        </button>
+<button class="donate-btn" id="ratingBtn">
+    🏆 РЕЙТИНГ
+</button>
+        <button class="donate-btn" id="donateBtn">
+            💖 ПОДДЕРЖАТЬ
+        </button>
+
+    </div>
+
+    <div class="world" id="world">
+        <button id="soundToggle" class="sound-toggle">🔊</button>
+        <div class="ceiling-light light1"></div>
+<div class="ceiling-light light2"></div>
+<div class="ceiling-light light3"></div>
+<div class="score-display">
+    SCORE:
+    <span id="score">0</span>
+
+    <br>
+
+    RECORD:
+    <span id="highScore">0</span>
+</div>
+
+<div class="combo-display" id="comboDisplay"></div>
+        <!-- ===== ПЕРСОНАЖ ===== -->
+
+        <div class="player" id="player">
+
+            <img
+                src="player.webp"
+                alt="Бутылолчка Мелстроя"
+            >
+
+        </div>
+
+        <div class="controls-hint">
+
+            <span>⬅️</span>
+            <span>➡️</span>
+
+        </div>
+
+    </div>
+    <div class="rating" id="rating">
+
+    <h2>🏆 ТОП ПТЕНЦОВ</h2>
+
+    <div id="ratingList">
+        Загрузка...
+    </div>
+
+    <button id="closeRating">
+        НАЗАД
+    </button>
+
+</div>
+<div class="countdown" id="countdown"></div>
+    <!-- ===== GAME OVER ===== -->
+
+    <div class="game-over" id="gameOver">
+
+        <h2>
+            💀 GAME OVER
+        </h2>
+
+        <div class="loser-text">
+            ТЫ ЛОШОК
+        </div>
+
+        <div class="final-score">
+
+            SCORE:
+            <span id="finalScore">
+                0
+            </span>
+
+        </div>
+
+        <div class="final-combo">
+
+            МАКС КОМБО:
+            <span id="finalCombo">
+                0
+            </span>x
+
+        </div>
+
+        <button class="restart-btn" id="restartBtn">
+            🔄 ЕЩЁ РАЗ
+        </button>
+
+        <button class="share-btn" id="shareBtn">
+            📱 ПОДЕЛИТЬСЯ
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+    // 🎵 Фоновая музыка
+const backgroundMusic = new Audio("pixel_sprinter_loop.ogg");
+backgroundMusic.loop = true;
+backgroundMusic.volume = 0.35;
+// 🍾 Звук при сборе 67
+const sound67 = new Audio("AudioCutter_Gazan_-_67_Six_Seven_80858207.mp3");
+sound67.volume = 0.8;
+// 🔊 Глобальное управление звуком
+// 🔊 Управление звуком — совместимость с iPhone
+let soundEnabled = localStorage.getItem("67run_sound") !== "off";
+
+const soundToggle = document.getElementById("soundToggle");
+
+function applySoundSettings() {
+    soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+    backgroundMusic.volume = soundEnabled ? 0.35 : 0;
+    sound67.volume = soundEnabled ? 0.8 : 0;
+}
+
+applySoundSettings();
+
+soundToggle.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    soundEnabled = !soundEnabled;
+
+    try {
+        localStorage.setItem(
+            "67run_sound",
+            soundEnabled ? "on" : "off"
+        );
+    } catch (error) {
+        console.warn("Не удалось сохранить настройку звука", error);
+    }
+
+    applySoundSettings();
+});
+    // ============================================================
+    // ИГРОВАЯ ЛОГИКА
+    // ============================================================
+
+    const menu = document.getElementById('menu');
+    const world = document.getElementById('world');
+    const gameOver = document.getElementById('gameOver');
+    const player = document.getElementById('player');
+    const scoreElement = document.getElementById('score');
+    const highScoreElement = document.getElementById('highScore') || { textContent: '' };
+    const finalScore = document.getElementById('finalScore');
+    const finalCombo = document.getElementById('finalCombo');
+    const comboDisplay = document.getElementById('comboDisplay');
+    const countdown = document.getElementById('countdown');
+    const LANES = [70, 175, 280];
+
+    let playerLane = 1;
+
+    let score = 0;
+    let highScore = Number(localStorage.getItem('67run_highscore')) || 0;
+    let gameRunning = false;
+
+    let obstacles = [];
+
+    let numbers = [];
+
+    let obstacleTimer = 0;
+
+    let numberTimer = 0;
+
+    let baseSpeed = 4.5;
+
+    let obstacleSpeed = baseSpeed;
+
+    let lastNumber = 0;
+
+    let comboLevel = 0;
+
+    let maxCombo = 0;
+
+    let scoreTimer = 0;
+
+    let gameTime = 0;
+
+    let animId = null;
+
+
+    // ============================================================
+    // ЗВУКИ
+    // ============================================================
+
+    const AudioContext =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+    let audioCtx = null;
+
+
+    function initAudio() {
+
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+
+    }
+
+
+    function playBeep(
+    freq,
+    duration,
+    type = 'sine',
+    volume = 0.2
+) {
+
+    if (!soundEnabled) return;
+
+    try {
+
+        initAudio();
+
+        const osc =
+            audioCtx.createOscillator();
+
+        const gain =
+            audioCtx.createGain();
+
+        osc.type = type;
+
+        osc.frequency.setValueAtTime(
+            freq,
+            audioCtx.currentTime
+        );
+
+        gain.gain.setValueAtTime(
+            volume,
+            audioCtx.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + duration
+        );
+
+        osc.connect(gain);
+
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+
+        osc.stop(
+            audioCtx.currentTime + duration
+        );
+
+    } catch(e) {}
+
+}
+
+
+    function playSix() {
+
+        playBeep(
+            523,
+            0.2,
+            'square',
+            0.15
+        );
+
+        setTimeout(() => {
+
+            playBeep(
+                659,
+                0.2,
+                'square',
+                0.15
+            );
+
+        }, 100);
+
+    }
+
+
+    function playSeven() {
+
+        playBeep(
+            587,
+            0.2,
+            'square',
+            0.15
+        );
+
+        setTimeout(() => {
+
+            playBeep(
+                784,
+                0.2,
+                'square',
+                0.15
+            );
+
+        }, 100);
+
+    }
+
+
+    function playCombo() {
+
+        playBeep(
+            523,
+            0.1,
+            'square',
+            0.2
+        );
+
+        setTimeout(() => {
+
+            playBeep(
+                659,
+                0.1,
+                'square',
+                0.2
+            );
+
+        }, 80);
+
+        setTimeout(() => {
+
+            playBeep(
+                784,
+                0.15,
+                'square',
+                0.25
+            );
+
+        }, 160);
+
+    }
+
+
+    function playDeath() {
+
+        playBeep(
+            300,
+            0.3,
+            'sawtooth',
+            0.15
+        );
+
+        setTimeout(() => {
+
+            playBeep(
+                200,
+                0.4,
+                'sawtooth',
+                0.15
+            );
+
+        }, 200);
+
+    }
+
+
+    // ============================================================
+    // ПЕРЕМЕЩЕНИЕ ИГРОКА
+    // ============================================================
+
+    function movePlayer() {
+
+        player.style.left =
+            LANES[playerLane] + 'px';
+
+    }
+
+
+    // ============================================================
+    // СОЗДАНИЕ ПРЕПЯТСТВИЯ
+    // ============================================================
+
+   function createObstacle() {
+
+    const el =
+        document.createElement('img');
+
+    el.className =
+        'obstacle';
+
+    const random =
+    Math.random();
+
+    let obstacleType;
+
+    // РЕДКАЯ ЧЕКУШКА — 5% появления
+    if (random < 0.05) {
+    obstacleType = 'obstacle4.webp';
+    }
+
+    // Обычные препятствия — остальные 95%
+     else if (random < 0.3667) {
+    obstacleType = 'obstacle1.webp';
+   }
+    else if (random < 0.6833) {
+    obstacleType = 'obstacle2.webp';
+   }
+    else {
+    obstacleType = 'obstacle3.webp';
+   }
+
+    el.src =
+    obstacleType;
+
+     const lane =
+        Math.floor(
+            Math.random() * 3
+        );
+
+    el.style.left =
+        LANES[lane] + 'px';
+
+    el.style.top =
+        '-50px';
+
+    world.appendChild(el);
+
+    obstacles.push({
+
+        element: el,
+
+        lane: lane,
+
+        y: -50
+
+    });
+
+}
+
+
+    // ============================================================
+    // СОЗДАНИЕ 6 И 7
+    // ============================================================
+
+     function createNumber() {
+    const lane = Math.floor(Math.random() * LANES.length);
+    const number = Math.random() < 0.5 ? 6 : 7;
+
+    // Не создаём 6/7, если впереди на этой полосе уже есть препятствие
+    const blocked = obstacles.some(o => {
+        return o.lane === lane && o.y > -150 && o.y < 150;
+    });
+
+    if (blocked) {
+        return;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'number';
+    el.textContent = number;
+    el.dataset.value = number;
+    el.style.left = LANES[lane] + 'px';
+    el.style.top = '-100px';
+
+    world.appendChild(el);
+
+    numbers.push({
+        element: el,
+        lane: lane,
+        number: number,
+        y: -100
+    });
+    }
+
+
+    // ============================================================
+    // COMBO
+    // ============================================================
+
+    function showCombo(level) {
+
+        if (level > 0) {
+
+            comboDisplay.textContent =
+                '🔥 67 COMBO x' + level;
+            comboDisplay.classList.remove('combo-pop');
+
+            void comboDisplay.offsetWidth;
+
+            comboDisplay.classList.add('combo-pop');
+            comboDisplay.classList.add(
+                'show'
+            );
+
+            comboDisplay.style.transform =
+                'scale(1.3)';
+
+            setTimeout(() => {
+
+                comboDisplay.style.transform =
+                    'scale(1)';
+
+            }, 100);
+
+            clearTimeout(
+                comboDisplay._hideTimer
+            );
+
+            comboDisplay._hideTimer =
+                setTimeout(() => {
+
+                    comboDisplay.classList.remove(
+                        'show'
+                    );
+
+                }, 1200);
+
+        } else {
+
+            comboDisplay.classList.remove(
+                'show'
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // GAME OVER
+    // ============================================================
+
+    function gameOverScreen() {
+async function saveScoreToServer() {
+    const tg = window.Telegram?.WebApp;
+
+    if (!tg?.initData) {
+        console.log("Telegram initData отсутствует");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/.netlify/functions/save-score",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    score: Math.floor(score),
+                    combo: maxCombo,
+                    initData: tg.initData
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("Результат сохранения:", data);
+
+    } catch (error) {
+        console.error(
+            "Не удалось сохранить результат:",
+            error
+        );
+    }
+}
+        gameRunning = false;
+world.classList.remove('running');
+        if (animId) {
+
+            cancelAnimationFrame(
+                animId
+            );
+
+        }
+
+        playDeath();
+        if (Math.floor(score) > highScore) {
+        highScore = Math.floor(score);
+        localStorage.setItem('67run_highscore', highScore);
+        }
+        gameOver.style.display =
+            'flex';
+
+        finalScore.textContent =
+            Math.floor(score);
+
+        finalCombo.textContent =
+            maxCombo;
+
+        saveScoreToServer();
+
+    }
+
+
+    // ============================================================
+    // ОСНОВНОЙ ИГРОВОЙ ЦИКЛ
+    // ============================================================
+
+    function gameLoop() {
+
+        if (!gameRunning) return;
+
+
+        // Время игры
+
+        gameTime++;
+
+
+        // Очки за время
+
+        scoreTimer++;
+
+        if (scoreTimer >= 60) {
+
+            score++;
+
+            scoreTimer = 0;
+
+        }
+
+
+        scoreElement.textContent =
+            Math.floor(score);
+
+
+        // Ускорение игры
+        // Каждые 10 секунд игра становится быстрее
+
+        if (
+        gameTime % 600 === 0 &&
+        gameTime > 0
+        ) {
+
+        obstacleSpeed =
+        baseSpeed +
+        (gameTime / 600) * 0.5;
+
+        }
+
+
+        // ========================================================
+        // ПРЕПЯТСТВИЯ
+        // ========================================================
+
+        obstacleTimer++;
+
+        const spawnRate =
+            Math.max(
+                35,
+                70 - gameTime / 80
+            );
+
+
+        if (
+            obstacleTimer >
+            spawnRate +
+            Math.random() * 20
+        ) {
+
+            createObstacle();
+
+            obstacleTimer = 0;
+
+        }
+
+
+        // ========================================================
+        // 6 И 7
+        // ========================================================
+
+        numberTimer++;
+
+        const numberRate =
+            Math.max(
+                45,
+                90 - gameTime / 70
+            );
+
+
+        if (
+            numberTimer >
+            numberRate +
+            Math.random() * 30
+        ) {
+
+            createNumber();
+
+            numberTimer = 0;
+
+        }
+
+
+        // ========================================================
+        // ПОЗИЦИИ ИГРОКА
+        // ========================================================
+
+        // Немного уменьшаем хитбокс,
+        // чтобы столкновение было более справедливым
+
+        const PLAYER_TOP = 550;
+
+        const PLAYER_BOTTOM = 595;
+
+        const PLAYER_LEFT =
+        LANES[playerLane] + 5;
+
+        const PLAYER_RIGHT =
+        LANES[playerLane] + 35;
+
+
+        // ========================================================
+        // ДВИЖЕНИЕ ПРЕПЯТСТВИЙ
+        // ========================================================
+
+        for (
+            let i = obstacles.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const obs =
+                obstacles[i];
+
+            obs.y += obstacleSpeed;
+
+            obs.element.style.top =
+                obs.y + 'px';
+
+
+            const OBS_TOP =
+                obs.y + 10;
+
+            const OBS_BOTTOM =
+                obs.y + 40;
+
+            const OBS_LEFT =
+                LANES[obs.lane];
+
+            const OBS_RIGHT =
+                LANES[obs.lane] + 40;
+
+
+            // Столкновение
+
+            if (
+                OBS_BOTTOM > PLAYER_TOP &&
+                OBS_TOP < PLAYER_BOTTOM &&
+                OBS_RIGHT > PLAYER_LEFT &&
+                OBS_LEFT < PLAYER_RIGHT
+            ) {
+
+                player.classList.add('hit');
+                world.classList.add('hit-effect');
+
+                setTimeout(() => {
+                player.classList.remove('hit');
+                world.classList.remove('hit-effect');
+                gameOverScreen();
+                }, 450);
+
+                return;
+
+                }
+
+
+            // Удаление старого препятствия
+
+            if (obs.y > 750) {
+
+                obs.element.remove();
+
+                obstacles.splice(i, 1);
+
+            }
+
+        }
+
+
+        // ========================================================
+        // ДВИЖЕНИЕ 6 И 7
+        // ========================================================
+
+        for (
+            let i = numbers.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const num =
+                numbers[i];
+
+            num.y += obstacleSpeed;
+
+            num.element.style.top =
+                num.y + 'px';
+
+
+            const NUM_TOP =
+                num.y + 5;
+
+            const NUM_BOTTOM =
+                num.y + 35;
+
+            const NUM_LEFT =
+                LANES[num.lane];
+
+            const NUM_RIGHT =
+                LANES[num.lane] + 40;
+
+
+            // ====================================================
+            // ПОЙМАЛИ ЧИСЛО
+            // ====================================================
+
+            if (
+                NUM_BOTTOM > PLAYER_TOP &&
+                NUM_TOP < PLAYER_BOTTOM &&
+                NUM_RIGHT > PLAYER_LEFT &&
+                NUM_LEFT < PLAYER_RIGHT
+            ) {
+
+
+                // =================================================
+                // Поймали 6
+                // =================================================
+
+                if (num.number === 6) {
+
+                    score += 2;
+
+                    playSix();
+
+
+                    if (lastNumber === 6) {
+
+                        comboLevel = 0;
+
+                        showCombo(0);
+
+                    }
+
+
+                    lastNumber = 6;
+
+                }
+
+
+                // =================================================
+                // Поймали 7
+                // =================================================
+
+                else if (num.number === 7) {
+
+                    score += 2;
+
+                    playSeven();
+
+
+                    if (lastNumber === 6) {
+
+                        comboLevel++;
+
+
+                        const bonus =
+                            Math.pow(
+                                2,
+                                comboLevel
+                            );
+
+
+                        score += bonus;
+
+
+                        playCombo();
+sound67.currentTime = 0;
+sound67.play().catch(() => {});
+
+                        if (
+                            comboLevel >
+                            maxCombo
+                        ) {
+
+                            maxCombo =
+                                comboLevel;
+
+                        }
+
+
+                        showCombo(
+                            comboLevel
+                        );
+
+                    } else {
+
+                        comboLevel = 0;
+
+                        showCombo(0);
+
+                    }
+
+
+                    lastNumber = 7;
+
+                }
+
+
+                // Удаляем пойманное число
+
+                num.element.remove();
+
+                numbers.splice(i, 1);
+
+                continue;
+
+            }
+
+
+            // Удаляем число, которое ушло вниз
+
+            if (num.y > 750) {
+
+                num.element.remove();
+
+                numbers.splice(i, 1);
+
+            }
+
+        }
+
+
+        // ========================================================
+        // СЛЕДУЮЩИЙ КАДР
+        // ========================================================
+
+        animId =
+            requestAnimationFrame(
+                gameLoop
+            );
+
+    }
+
+
+    // ============================================================
+    // НАЧАЛО ИГРЫ
+    // ============================================================
+    function startCountdown(callback) {
+
+    let count = 3;
+
+    countdown.style.display = "flex";
+
+    countdown.textContent = count;
+
+    const timer = setInterval(() => {
+
+        count--;
+
+        if (count > 0) {
+
+            countdown.textContent = count;
+
+        } else {
+
+            countdown.textContent = "GO!";
+
+            clearInterval(timer);
+
+            setTimeout(() => {
+
+                countdown.style.display = "none";
+
+                callback();
+
+            }, 500);
+
+        }
+
+    }, 1000);
+
+}
+      // ============================================================
+// НАЧАЛО ИГРЫ
+// ============================================================
+
+function startGame() {
+
+    score = 0;
+
+    playerLane = 1;
+
+    gameTime = 0;
+
+    scoreTimer = 0;
+
+    lastNumber = 0;
+
+    comboLevel = 0;
+
+    maxCombo = 0;
+
+    obstacleTimer = 0;
+
+    numberTimer = 0;
+
+    obstacleSpeed = baseSpeed;
+
+
+    // Удаляем старые препятствия
+
+    obstacles.forEach(o => {
+
+        o.element.remove();
+
+    });
+
+    obstacles = [];
+
+
+    // Удаляем старые 6 и 7
+
+    numbers.forEach(n => {
+
+        n.element.remove();
+
+    });
+
+    numbers = [];
+
+
+    // Сбрасываем интерфейс
+
+    scoreElement.textContent = '0';
+
+    highScoreElement.textContent = highScore;
+
+    comboDisplay.classList.remove('show');
+
+
+    // Показываем игровой экран
+
+    menu.style.display = 'none';
+
+    gameOver.style.display = 'none';
+
+    world.style.display = 'block';
+
+
+    // Ставим игрока в центр
+
+    movePlayer();
+
+
+    // Останавливаем старый игровой цикл
+
+    if (animId) {
+
+        cancelAnimationFrame(animId);
+
+        animId = null;
+
+    }
+
+
+    // Звук
+
+    initAudio();
+// 🎵 Запускаем фоновую музыку
+backgroundMusic.currentTime = 0;
+backgroundMusic.play().catch(() => {});
+
+    // Запускаем обратный отсчёт
+
+    imagesReady.then(() => {
+    startCountdown(() => {
+        gameRunning = true;
+        world.classList.add('running');
+        gameLoop();
+    });
+});
+
+}
+
+
+// ============================================================
+// УПРАВЛЕНИЕ
+// ============================================================
+
+
+    // ============================================================
+    // УПРАВЛЕНИЕ
+    // ============================================================
+
+    function moveLeft() {
+
+        if (!gameRunning) return;
+
+        if (playerLane > 0) {
+
+            playerLane--;
+
+            movePlayer();
+
+        }
+
+    }
+
+
+    function moveRight() {
+
+        if (!gameRunning) return;
+
+        if (playerLane < 2) {
+
+            playerLane++;
+
+            movePlayer();
+
+        }
+
+    }
+
+
+// ============================================================
+// УПРАВЛЕНИЕ ТЕЛЕФОНОМ
+// БЫСТРЫЙ ТАП + СВАЙП
+// ============================================================
+
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+
+world.addEventListener('touchstart', (e) => {
+
+    const touch = e.changedTouches[0];
+
+    touchStartX = touch.screenX;
+    touchStartY = touch.screenY;
+
+    touchMoved = false;
+
+}, { passive: true });
+
+
+world.addEventListener('touchmove', (e) => {
+
+    if (!gameRunning) return;
+
+    const touch = e.changedTouches[0];
+
+    const distanceX = touch.screenX - touchStartX;
+    const distanceY = touch.screenY - touchStartY;
+
+    if (
+        Math.abs(distanceX) > 20 ||
+        Math.abs(distanceY) > 20
+    ) {
+
+        touchMoved = true;
+
+    }
+
+}, { passive: true });
+
+
+world.addEventListener('touchend', (e) => {
+
+    if (!gameRunning) return;
+
+    const touch = e.changedTouches[0];
+
+    const touchEndX = touch.screenX;
+    const touchEndY = touch.screenY;
+
+    const distanceX = touchEndX - touchStartX;
+    const distanceY = touchEndY - touchStartY;
+
+    // Если был свайп — двигаемся в сторону свайпа
+    if (Math.abs(distanceX) > 30) {
+
+        if (distanceX > 0) {
+            moveRight();
+        } else {
+            moveLeft();
+        }
+
+        return;
+    }
+
+    // Если палец почти не двигался — это тап
+    if (!touchMoved) {
+
+        const screenMiddle = window.innerWidth / 2;
+
+        if (touchEndX < screenMiddle) {
+            moveLeft();
+        } else {
+            moveRight();
+        }
+
+    }
+
+}, { passive: true });
+
+
+    // ============================================================
+    // КЛАВИАТУРА
+    // ============================================================
+
+    document.addEventListener(
+        'keydown',
+        (e) => {
+
+            if (
+                e.key === 'ArrowLeft'
+            ) {
+
+                e.preventDefault();
+
+                moveLeft();
+
+            }
+
+
+            if (
+                e.key === 'ArrowRight'
+            ) {
+
+                e.preventDefault();
+
+                moveRight();
+
+            }
+
+
+            if (
+                e.key === 'Enter' &&
+                !gameRunning
+            ) {
+
+                startGame();
+
+            }
+
+        }
+    );
+
+
+    // ============================================================
+    // КНОПКИ
+    // ============================================================
+
+    document
+        .getElementById('startBtn')
+        .addEventListener(
+            'click',
+            startGame
+        );
+
+
+    document
+        .getElementById('restartBtn')
+        .addEventListener(
+            'click',
+            startGame
+        );
+
+
+    // ============================================================
+    // ПОДДЕРЖАТЬ
+    // ============================================================
+
+    document
+        .getElementById('donateBtn')
+        .addEventListener(
+            'click',
+            () => {
+
+                alert(
+                    '💖 Спасибо за поддержку!\n\n' +
+                    'Ссылка для доната:\n' +
+                    'https://t.me/...'
+                );
+
+            }
+        );
+
+
+    // ============================================================
+    // ПОДЕЛИТЬСЯ
+    // ============================================================
+
+    document
+        .getElementById('shareBtn')
+        .addEventListener(
+            'click',
+            () => {
+
+                const text =
+                    `🍾 БЕГИ, Бутылочка!\n` +
+                    `Мой рекорд: ${Math.floor(score)} очков!\n` +
+                    `Комбо: ${maxCombo}x\n\n` +
+                    `Попробуй побить! 🔥`;
+
+
+                if (navigator.share) {
+
+                    navigator
+                        .share({
+                            text: text
+                        })
+                        .catch(() => {});
+
+                } else {
+
+                    navigator
+                        .clipboard
+                        .writeText(text)
+                        .then(() => {
+
+                            alert(
+                                '📋 Результат скопирован!'
+                            );
+
+                        });
+
+                }
+
+            }
+        );
+
+
+    // ============================================================
+    // TELEGRAM
+    // ============================================================
+
+    try {
+
+        if (
+            window.Telegram &&
+            window.Telegram.WebApp
+        ) {
+
+            window.Telegram.WebApp.ready();
+
+            window.Telegram.WebApp.expand();
+
+        }
+
+    } catch(e) {}
+
+// ============================================================
+// ЗАГРУЗКА И ДЕКОДИРОВАНИЕ КАРТИНОК ЗАРАНЕЕ
+// ============================================================
+
+const preloadImagesList = [
+    "player.webp",
+    "obstacle1.webp",
+    "obstacle2.webp",
+    "obstacle3.webp",
+    "obstacle4.webp",
+    "tunnel.webp"
+];
+
+function preloadGameImage(src) {
+    return new Promise(resolve => {
+        const img = new Image();
+
+        img.onload = async () => {
+            try {
+                if (img.decode) {
+                    await img.decode();
+                }
+            } catch (e) {}
+
+            resolve();
+        };
+
+        img.onerror = () => resolve();
+
+        img.src = src;
+    });
+}
+
+const imagesReady = Promise.all(
+    preloadImagesList.map(preloadGameImage)
+);
+    // Начальная позиция
+
+    movePlayer();
+    const rating = document.getElementById("rating");
+const ratingList = document.getElementById("ratingList");
+const ratingBtn = document.getElementById("ratingBtn");
+const closeRating = document.getElementById("closeRating");
+
+ratingBtn.addEventListener("click", async () => {
+    menu.style.display = "none";
+    rating.style.display = "flex";
+    ratingList.textContent = "Загрузка...";
+
+    try {
+        const response = await fetch(
+            "/.netlify/functions/rating"
+        );
+
+        const data = await response.json();
+
+        if (!data.ok) {
+            throw new Error(data.error || "Ошибка рейтинга");
+        }
+
+        if (!data.players.length) {
+            ratingList.textContent = "Пока никто не сыграл 😢";
+            return;
+        }
+
+        ratingList.innerHTML = "";
+
+        data.players.forEach((player) => {
+            const item = document.createElement("div");
+            item.className = "rating-item";
+
+            const place = document.createElement("div");
+            place.className = "rating-place";
+            place.textContent = `${player.place}.`;
+
+            const name = document.createElement("div");
+            name.className = "rating-name";
+            name.textContent = player.username
+                ? `@${player.username}`
+                : player.firstName;
+
+            const score = document.createElement("div");
+            score.className = "rating-score";
+            score.textContent = `${player.score} 🏆`;
+
+            const combo = document.createElement("div");
+            combo.className = "rating-combo";
+            combo.textContent = `67 ×${player.combo}`;
+
+            item.appendChild(place);
+            item.appendChild(name);
+            item.appendChild(score);
+            item.appendChild(combo);
+
+            ratingList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error("Ошибка загрузки рейтинга:", error);
+        ratingList.textContent = "Не удалось загрузить рейтинг";
+    }
+});
+
+closeRating.addEventListener("click", () => {
+    rating.style.display = "none";
+    menu.style.display = "flex";
+});
+// Telegram WebApp
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+        console.log("Игрок:", user.first_name);
+        console.log("ID:", user.id);
+    }
+}
+</script>
+
+</body>
+</html>
